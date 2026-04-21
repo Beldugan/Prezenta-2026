@@ -416,8 +416,8 @@
                         <div class="value green" id="val-dist">—</div>
                     </div>
                     <div class="info-cell">
-                        <div class="label">✅ Status</div>
-                        <div class="value green">La atelier</div>
+                        <div class="label">🏭 Locație</div>
+                        <div class="value green" id="val-locatie">—</div>
                     </div>
                 </div>
 
@@ -450,12 +450,15 @@
     // ══════════════════════════════════════════════════════
 
     const CONFIG = {
-        // Coordonatele atelierului (deja setate pe locația ta)
-        ATELIER_LAT: 44.358856771755704,
-        ATELIER_LNG: 28.634105359464634,
+        // Locațiile de practică (se verifică toate, se alege cea mai apropiată)
+        LOCATII: [
+            { nume: "Fabrica Celco",  lat: 44.35866500022989,  lng: 28.63416973238878  },
+            { nume: "Comvex SA",      lat: 44.140548891549045, lng: 28.64134663451064  },
+            { nume: "DPWorld",        lat: 44.103756471350614, lng: 28.662711152835715 },
+        ],
 
         // Raza maximă acceptată (în metri)
-        RAZA_MAXIMA: 150,
+        RAZA_MAXIMA: 300,
 
         // ┌─────────────────────────────────────────────┐
         // │  GOOGLE FORM — înlocuiește cu datele tale    │
@@ -525,26 +528,38 @@
     function onGPS(pos) {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        const d = dist(lat, lng, CONFIG.ATELIER_LAT, CONFIG.ATELIER_LNG);
         const t = now();
 
-        gpsData = { lat, lng, dist: d, data: t.data, ora: t.ora };
+        // Găsește cea mai apropiată locație
+        let closest = null;
+        let minDist = Infinity;
 
-        if (d <= CONFIG.RAZA_MAXIMA) {
+        for (const loc of CONFIG.LOCATII) {
+            const d = dist(lat, lng, loc.lat, loc.lng);
+            if (d < minDist) {
+                minDist = d;
+                closest = loc;
+            }
+        }
+
+        gpsData = { lat, lng, dist: minDist, data: t.data, ora: t.ora, locatie: closest.nume };
+
+        if (minDist <= CONFIG.RAZA_MAXIMA) {
             // ✅ În rază
-            setChip('chip-gps', 'ok', `${Math.round(d)}m — OK`);
+            setChip('chip-gps', 'ok', `${Math.round(minDist)}m — OK`);
             setChip('chip-time', 'ok', t.ora);
 
             document.getElementById('val-data').textContent = t.data;
             document.getElementById('val-ora').textContent = t.ora;
-            document.getElementById('val-dist').textContent = Math.round(d) + 'm';
+            document.getElementById('val-dist').textContent = Math.round(minDist) + 'm';
+            document.getElementById('val-locatie').textContent = closest.nume;
 
             show('view-form');
             hide('view-loading');
             document.getElementById('inp-name').focus();
         } else {
-            // ❌ Prea departe
-            gpsError(`Ești la <strong>${Math.round(d)}m</strong> de atelier. Trebuie să fii la max <strong>${CONFIG.RAZA_MAXIMA}m</strong>.`);
+            // ❌ Prea departe — arată cea mai apropiată locație
+            gpsError(`Ești la <strong>${Math.round(minDist)}m</strong> de <strong>${closest.nume}</strong> (cea mai apropiată locație). Trebuie să fii la max <strong>${CONFIG.RAZA_MAXIMA}m</strong> de una dintre locații.`);
         }
     }
 
@@ -587,7 +602,7 @@
         params.set(CONFIG.FIELD_LAT, gpsData.lat.toFixed(6));
         params.set(CONFIG.FIELD_LNG, gpsData.lng.toFixed(6));
         params.set(CONFIG.FIELD_DISTANTA, Math.round(gpsData.dist) + 'm');
-        params.set(CONFIG.FIELD_STATUS, 'PREZENT — verificat GPS');
+        params.set(CONFIG.FIELD_STATUS, 'PREZENT — ' + gpsData.locatie);
 
         fetch(CONFIG.FORM_ACTION + '?' + params.toString(), {
             method: 'GET',
@@ -608,7 +623,7 @@
         document.getElementById('success-detail').innerHTML =
             `<strong>${name}</strong><br>` +
             `${t.data} · ${t.ora}<br>` +
-            `📍 ${Math.round(gpsData.dist)}m de atelier`;
+            `🏭 ${gpsData.locatie} · 📍 ${Math.round(gpsData.dist)}m`;
     }
 
     // ── Helpers ──
