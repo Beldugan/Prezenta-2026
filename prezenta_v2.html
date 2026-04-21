@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prezență Practică 2026</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0c1117;
+            --card: #151d28;
+            --card-border: rgba(255,255,255,0.06);
+            --accent: #00d68f;
+            --accent-glow: rgba(0,214,143,0.15);
+            --accent-dark: #00a86e;
+            --text: #e4eaf1;
+            --text-dim: #5a6e82;
+            --danger: #ff5c5c;
+            --danger-bg: rgba(255,92,92,0.1);
+            --warning: #ffb020;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100dvh;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background-image: 
+                radial-gradient(ellipse at 20% 80%, rgba(0,214,143,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0,120,255,0.03) 0%, transparent 50%);
+        }
+
+        .app {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* ── Header ── */
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .brand .tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--accent);
+            background: var(--accent-glow);
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* ── Card ── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 12px;
+        }
+
+        /* ── Status Chips ── */
+        .status-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.4s ease;
+        }
+
+        .chip.ok {
+            background: var(--accent-glow);
+            border-color: rgba(0,214,143,0.2);
+            color: var(--accent);
+        }
+
+        .chip.fail {
+            background: var(--danger-bg);
+            border-color: rgba(255,92,92,0.2);
+            color: var(--danger);
+        }
+
+        .chip.pending {
+            color: var(--text-dim);
+        }
+
+        .chip .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+
+        .chip.pending .dot {
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* ── GPS Loading ── */
+        .gps-loader {
+            text-align: center;
+            padding: 32px 0;
+        }
+
+        .radar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,214,143,0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .radar::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            animation: radar-ping 2s ease-out infinite;
+        }
+
+        .radar::after {
+            content: '📍';
+            font-size: 28px;
+        }
+
+        @keyframes radar-ping {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .gps-loader p {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        /* ── Info Grid ── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-cell {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .info-cell .label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-cell .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .info-cell .value.green { color: var(--accent); }
+        .info-cell .value.red { color: var(--danger); }
+
+        /* ── Name Input ── */
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: 2px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--accent);
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        /* ── Button ── */
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-go {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: var(--bg);
+            box-shadow: 0 4px 24px var(--accent-glow);
+        }
+
+        .btn-go:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,214,143,0.3);
+        }
+
+        .btn-go:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-retry {
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            margin-top: 12px;
+        }
+
+        .btn-retry:hover { background: rgba(255,255,255,0.1); }
+
+        /* ── Success Screen ── */
+        .success-screen {
+            text-align: center;
+            padding: 20px 0 8px;
+        }
+
+        .checkmark {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 16px;
+            animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes pop-in {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .success-screen h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .success-screen .detail {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .success-screen .detail strong {
+            color: var(--text);
+        }
+
+        /* ── Error Banner ── */
+        .error-banner {
+            background: var(--danger-bg);
+            border: 1px solid rgba(255,92,92,0.2);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .error-banner .err-icon { font-size: 32px; margin-bottom: 8px; }
+        .error-banner .err-title { font-size: 16px; font-weight: 700; color: var(--danger); margin-bottom: 4px; }
+        .error-banner .err-msg { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255,255,255,0.15);
+            padding: 8px;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="brand">
+            <div class="brand-icon">🔧</div>
+            <h1>Prezență Practică</h1>
+            <div class="tag">PRACTICĂ 2026</div>
+        </div>
+
+        <div class="card">
+            <!-- Status chips -->
+            <div class="status-row">
+                <div class="chip pending" id="chip-gps">
+                    <span class="dot"></span>
+                    <span id="chip-gps-text">Se caută GPS...</span>
+                </div>
+                <div class="chip pending" id="chip-time">
+                    <span class="dot"></span>
+                    <span id="chip-time-text">--:--</span>
+                </div>
+            </div>
+
+            <!-- GPS Loading -->
+            <div id="view-loading">
+                <div class="gps-loader">
+                    <div class="radar"></div>
+                    <p>Se verifică locația ta...</p>
+                </div>
+            </div>
+
+            <!-- GPS Error -->
+            <div id="view-error" class="hidden">
+                <div class="error-banner">
+                    <div class="err-icon">📡</div>
+                    <div class="err-title">Nu ești la atelier</div>
+                    <div class="err-msg" id="error-msg"></div>
+                </div>
+                <button class="btn btn-retry" onclick="startGPS()">🔄 Încearcă din nou</button>
+            </div>
+
+            <!-- Form -->
+            <div id="view-form" class="hidden">
+                <div class="info-grid">
+                    <div class="info-cell">
+                        <div class="label">📅 Data</div>
+                        <div class="value" id="val-data">—</div>
+                    </div>
+                    <div class="info-cell">
+                        <div class="label">🕐 Ora</div>
+                        <div class="value" id="val-ora">—</div>
+                    </div>
+                    <div class="info-cell">
+                        <div class="label">📍 Distanță</div>
+                        <div class="value green" id="val-dist">—</div>
+                    </div>
+                    <div class="info-cell">
+                        <div class="label">✅ Status</div>
+                        <div class="value green">La atelier</div>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label>Nume și prenume</label>
+                    <input type="text" id="inp-name" placeholder="ex: Popescu Ion" autocomplete="name" autofocus>
+                </div>
+
+                <button class="btn btn-go" id="btn-send" disabled onclick="sendAttendance()">
+                    Confirmă prezența
+                </button>
+            </div>
+
+            <!-- Success -->
+            <div id="view-success" class="hidden">
+                <div class="success-screen">
+                    <div class="checkmark">✓</div>
+                    <h2>Prezență înregistrată!</h2>
+                    <div class="detail" id="success-detail"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">Practică · Mecanic Utilaje și Instalații · 2026</div>
+    </div>
+
+    <script>
+    // ══════════════════════════════════════════════════════
+    //  CONFIGURARE — completează cu datele tale reale
+    // ══════════════════════════════════════════════════════
+
+    const CONFIG = {
+        // Coordonatele atelierului (deja setate pe locația ta)
+        ATELIER_LAT: 44.358856771755704,
+        ATELIER_LNG: 28.634105359464634,
+
+        // Raza maximă acceptată (în metri)
+        RAZA_MAXIMA: 150,
+
+        // ┌─────────────────────────────────────────────┐
+        // │  GOOGLE FORM — înlocuiește cu datele tale    │
+        // │  Vezi instrucțiunile din fișierul README     │
+        // └─────────────────────────────────────────────┘
+        FORM_ACTION: "https://docs.google.com/forms/d/e/1FAIpQLSfS5dJ3zdtbH5GBuUl1WQKe3xHLUkxm6wPREKZbeKKxDQrt_w/formResponse",
+
+        // ID-urile câmpurilor (entry.XXXX) din Google Form
+        FIELD_NUME:     "entry.145120749",
+        FIELD_DATA:     "entry.725974334",
+        FIELD_ORA:      "entry.311224023",
+        FIELD_LAT:      "entry.1694760866",
+        FIELD_LNG:      "entry.455120947",
+        FIELD_DISTANTA: "entry.339558071",
+        FIELD_STATUS:   "entry.456197826",
+    };
+
+    // ══════════════════════════════════════════════════════
+
+    let gpsData = {};
+
+    // Haversine distance (meters)
+    function dist(lat1, lon1, lat2, lon2) {
+        const R = 6371000, toR = Math.PI / 180;
+        const dLat = (lat2 - lat1) * toR, dLon = (lon2 - lon1) * toR;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toR) * Math.cos(lat2*toR) * Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    // Format date/time
+    function now() {
+        const d = new Date();
+        return {
+            data: d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+            ora:  d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+            full: d.toLocaleString('ro-RO')
+        };
+    }
+
+    // Update time chip
+    setInterval(() => {
+        document.getElementById('chip-time-text').textContent = now().ora;
+    }, 1000);
+    document.getElementById('chip-time-text').textContent = now().ora;
+
+    // ── GPS ──
+    function startGPS() {
+        // Reset views
+        show('view-loading');
+        hide('view-error');
+        hide('view-form');
+        hide('view-success');
+        setChip('chip-gps', 'pending', 'Se caută GPS...');
+
+        if (!navigator.geolocation) {
+            gpsError("Browserul nu suportă GPS. Folosește Chrome.");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(onGPS, onGPSFail, {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 0
+        });
+    }
+
+    function onGPS(pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const d = dist(lat, lng, CONFIG.ATELIER_LAT, CONFIG.ATELIER_LNG);
+        const t = now();
+
+        gpsData = { lat, lng, dist: d, data: t.data, ora: t.ora };
+
+        if (d <= CONFIG.RAZA_MAXIMA) {
+            // ✅ În rază
+            setChip('chip-gps', 'ok', `${Math.round(d)}m — OK`);
+            setChip('chip-time', 'ok', t.ora);
+
+            document.getElementById('val-data').textContent = t.data;
+            document.getElementById('val-ora').textContent = t.ora;
+            document.getElementById('val-dist').textContent = Math.round(d) + 'm';
+
+            show('view-form');
+            hide('view-loading');
+            document.getElementById('inp-name').focus();
+        } else {
+            // ❌ Prea departe
+            gpsError(`Ești la <strong>${Math.round(d)}m</strong> de atelier. Trebuie să fii la max <strong>${CONFIG.RAZA_MAXIMA}m</strong>.`);
+        }
+    }
+
+    function onGPSFail(err) {
+        const msgs = {
+            1: "Ai blocat accesul la locație. Deschide setările browserului și permite locația.",
+            2: "GPS indisponibil. Verifică să ai locația pornită pe telefon.",
+            3: "Timpul a expirat. Ieși afară sau mută-te lângă fereastră și încearcă din nou."
+        };
+        gpsError(msgs[err.code] || "Eroare GPS necunoscută.");
+    }
+
+    function gpsError(msg) {
+        setChip('chip-gps', 'fail', 'GPS — eroare');
+        document.getElementById('error-msg').innerHTML = msg;
+        hide('view-loading');
+        show('view-error');
+    }
+
+    // ── Form ──
+    document.getElementById('inp-name').addEventListener('input', function() {
+        document.getElementById('btn-send').disabled = this.value.trim().length < 3;
+    });
+
+    function sendAttendance() {
+        const name = document.getElementById('inp-name').value.trim();
+        if (name.length < 3) return;
+
+        const btn = document.getElementById('btn-send');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-small"></span> Se trimite...';
+
+        const t = now();
+
+        // Build form URL
+        const params = new URLSearchParams();
+        params.set(CONFIG.FIELD_NUME, name);
+        params.set(CONFIG.FIELD_DATA, t.data);
+        params.set(CONFIG.FIELD_ORA, t.ora);
+        params.set(CONFIG.FIELD_LAT, gpsData.lat.toFixed(6));
+        params.set(CONFIG.FIELD_LNG, gpsData.lng.toFixed(6));
+        params.set(CONFIG.FIELD_DISTANTA, Math.round(gpsData.dist) + 'm');
+        params.set(CONFIG.FIELD_STATUS, 'PREZENT — verificat GPS');
+
+        fetch(CONFIG.FORM_ACTION + '?' + params.toString(), {
+            method: 'GET',
+            mode: 'no-cors'
+        }).then(() => {
+            showSuccess(name, t);
+        }).catch(() => {
+            // Fallback — deschide form-ul în browser
+            window.location.href = CONFIG.FORM_ACTION + '?' + params.toString();
+        });
+    }
+
+    function showSuccess(name, t) {
+        hide('view-form');
+        show('view-success');
+        setChip('chip-gps', 'ok', '✓ Trimis');
+
+        document.getElementById('success-detail').innerHTML =
+            `<strong>${name}</strong><br>` +
+            `${t.data} · ${t.ora}<br>` +
+            `📍 ${Math.round(gpsData.dist)}m de atelier`;
+    }
+
+    // ── Helpers ──
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function setChip(id, state, text) {
+        const el = document.getElementById(id);
+        el.className = 'chip ' + state;
+        document.getElementById(id + '-text').textContent = text;
+    }
+
+    // ── Start ──
+    startGPS();
+    </script>
+</body>
+</html>
