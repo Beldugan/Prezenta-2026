@@ -452,13 +452,11 @@
     const CONFIG = {
         // Locațiile de practică (se verifică toate, se alege cea mai apropiată)
         LOCATII: [
-            { nume: "Fabrica Celco",  lat: 44.35866500022989,  lng: 28.63416973238878  },
-            { nume: "Comvex SA",      lat: 44.140548891549045, lng: 28.64134663451064  },
-            { nume: "DPWorld",        lat: 44.103756471350614, lng: 28.662711152835715 },
+            { nume: "Fabrica Celco",  lat: 44.35866500022989,  lng: 28.63416973238878,  raza: 300 },
+            { nume: "Comvex SA",      lat: 44.140548891549045, lng: 28.64134663451064,  raza: 300 },
+            { nume: "DPWorld",        lat: 44.103756471350614, lng: 28.662711152835715, raza: 300 },
+            { nume: "Liceul Tehnologic Lazar Edeleanu", lat: 44.32000726208152, lng: 28.61558228239686, raza: 100 },
         ],
-
-        // Raza maximă acceptată (în metri)
-        RAZA_MAXIMA: 300,
 
         // ┌─────────────────────────────────────────────┐
         // │  GOOGLE FORM — înlocuiește cu datele tale    │
@@ -544,7 +542,7 @@
 
         gpsData = { lat, lng, dist: minDist, data: t.data, ora: t.ora, locatie: closest.nume };
 
-        if (minDist <= CONFIG.RAZA_MAXIMA) {
+        if (minDist <= closest.raza) {
             // ✅ În rază
             setChip('chip-gps', 'ok', `${Math.round(minDist)}m — OK`);
             setChip('chip-time', 'ok', t.ora);
@@ -559,7 +557,7 @@
             document.getElementById('inp-name').focus();
         } else {
             // ❌ Prea departe — arată cea mai apropiată locație
-            gpsError(`Ești la <strong>${Math.round(minDist)}m</strong> de <strong>${closest.nume}</strong> (cea mai apropiată locație). Trebuie să fii la max <strong>${CONFIG.RAZA_MAXIMA}m</strong> de una dintre locații.`);
+            gpsError(`Ești la <strong>${Math.round(minDist)}m</strong> de <strong>${closest.nume}</strong> (cea mai apropiată locație). Trebuie să fii la max <strong>${closest.raza}m</strong>.`);
         }
     }
 
@@ -590,11 +588,11 @@
 
         const btn = document.getElementById('btn-send');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-small"></span> Se trimite...';
+        btn.textContent = 'Se trimite...';
 
         const t = now();
 
-        // Build form URL
+        // Construiește URL-ul cu parametrii
         const params = new URLSearchParams();
         params.set(CONFIG.FIELD_NUME, name);
         params.set(CONFIG.FIELD_DATA, t.data);
@@ -604,15 +602,45 @@
         params.set(CONFIG.FIELD_DISTANTA, Math.round(gpsData.dist) + 'm');
         params.set(CONFIG.FIELD_STATUS, 'PREZENT — ' + gpsData.locatie);
 
-        fetch(CONFIG.FORM_ACTION + '?' + params.toString(), {
-            method: 'GET',
-            mode: 'no-cors'
-        }).then(() => {
+        // Metodă fiabilă: iframe ascuns care trimite direct la Google Form
+        const iframe = document.createElement('iframe');
+        iframe.name = 'hidden_iframe_' + Date.now();
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = CONFIG.FORM_ACTION;
+        form.target = iframe.name;
+
+        // Adaugă câmpurile ca input-uri ascunse
+        const fields = {
+            [CONFIG.FIELD_NUME]: name,
+            [CONFIG.FIELD_DATA]: t.data,
+            [CONFIG.FIELD_ORA]: t.ora,
+            [CONFIG.FIELD_LAT]: gpsData.lat.toFixed(6),
+            [CONFIG.FIELD_LNG]: gpsData.lng.toFixed(6),
+            [CONFIG.FIELD_DISTANTA]: Math.round(gpsData.dist) + 'm',
+            [CONFIG.FIELD_STATUS]: 'PREZENT — ' + gpsData.locatie,
+        };
+
+        for (const [key, val] of Object.entries(fields)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = val;
+            form.appendChild(input);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+
+        // Curăță și arată succesul după 2 secunde
+        setTimeout(() => {
+            form.remove();
+            iframe.remove();
             showSuccess(name, t);
-        }).catch(() => {
-            // Fallback — deschide form-ul în browser
-            window.location.href = CONFIG.FORM_ACTION + '?' + params.toString();
-        });
+        }, 2000);
     }
 
     function showSuccess(name, t) {
